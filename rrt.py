@@ -20,7 +20,7 @@ class rrt():
         self.goal_radius = goal_radius
         self.occupancy_grid = occupancy_grid
 
-        self.debug = True
+        self.debug = False
         self.goal_reached = False
         self.node_tree = [self.start_node]
 
@@ -34,7 +34,7 @@ class rrt():
             print("sampling point")
         width = self.map_size[0]
         height = self.map_size[1]
-        rand_x = random.randint(0, width,)
+        rand_x = random.randint(0, width)
         rand_y = random.randint(0, height)
         rand_node_pos = (rand_x, rand_y)
         rand_node = node(rand_node_pos)
@@ -112,7 +112,8 @@ class rrt():
         cells.append((x1, y1))
 
         if self.debug == True:
-            print(f"[debug] {cells}")
+            time.sleep(0.5)
+            print(f"[debug] returned cells fro  bresenham line = {cells}")
         return cells
     
 
@@ -149,6 +150,12 @@ class rrt():
             self.goal_node.cost = self.nearest_to_goal_node.cost + dist
 
             self.node_tree.append(self.goal_node)
+            if self.debug:
+                time.sleep(1)
+                for i in self.node_tree:
+                    print(i.x, i.y)
+                    time.sleep(0.5)
+                
             self.nearest_to_goal_node = self.goal_node
 
     def is_valid_node(self, node):
@@ -159,10 +166,17 @@ class rrt():
             return False
         return True
 
+    def check_if_node_exists(self, node):
+        for n in self.node_tree:
+            if node.x == n.x and node.y == n.y:
+                return False
+        
+        return True
 
             
 
     def develop_tree(self):
+        
         if self.debug:
             time.sleep(0.25)
             print("developing tree")
@@ -171,11 +185,14 @@ class rrt():
             nearest_node = self.find_nearest_node(rand_node)
 
             new_node = self.brancher(nearest_node, rand_node)
+
             no_collision_path = self.check_if_collision_free(nearest_node, new_node)
             is_valid_node = self.is_valid_node(new_node)
-            if no_collision_path == True and is_valid_node:
+            check_if_node_exists = self.check_if_node_exists(new_node)
+
+            if no_collision_path == True and is_valid_node == True and check_if_node_exists == True:
                 self.node_tree.append(new_node)
-                print(f"[debug] parent is {new_node.parent}")
+
             
             else:
                 pass
@@ -187,7 +204,7 @@ class rrt():
         print('generating path')
         path = []
         current = self.nearest_to_goal_node
-        print(current.parent)
+
         #fill code here
 
         while current is not None:
@@ -196,19 +213,14 @@ class rrt():
 
         path.reverse()
 
-        if self.debug:
-            print("[debug] Final path:")
-            for p in path:
-                print(f"→ {p}")
-
         return path 
 
 
 
 def main():
     start_pos = (0, 0)
-    goal_pos = (10, 3)
-    map_size = (10, 10)
+    goal_pos = (13, 5)
+    map_size = (20, 17)
     step_size = 1.0
     search_radius = 2.0
     goal_radius = 1.0
@@ -226,28 +238,38 @@ def main():
     #     ]
 
     occupancy_grid = [
-        [0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0],
-        [0,1,1,1,1,1,1,0,0,0, 0,1,1,1,1,1,1,0,0,0],
-        [0,0,0,0,0,0,1,0,1,0, 0,0,0,0,0,0,1,0,1,0],
-        [0,0,1,1,1,0,1,0,1,0, 0,0,1,1,1,0,1,0,1,0],
-        [0,0,0,0,1,0,1,0,1,0, 1,1,1,0,1,0,1,0,1,0],
-        [1,1,1,0,1,0,1,0,1,0, 0,0,0,0,1,0,1,0,1,0],
-        [0,0,1,0,1,0,0,0,1,0, 0,1,1,0,1,0,0,0,1,0],
-        [0,0,1,0,1,1,1,1,1,0, 0,1,0,0,1,1,1,1,1,0],
-        [0,0,0,0,0,0,0,0,0,0, 0,1,0,0,0,0,0,0,0,0],
-        [0,1,1,1,1,1,1,1,1,0, 0,1,1,1,1,1,1,1,1,0],
-        [0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0],
-        [0,1,1,1,1,1,1,0,0,0, 0,1,1,1,1,1,1,0,0,0],
-        [0,0,0,0,0,0,1,0,1,0, 0,0,0,0,0,0,1,0,1,0],
-        [0,0,1,1,1,0,1,0,1,0, 0,0,1,1,1,0,1,0,1,0],
-        [0,0,0,0,1,0,1,0,1,0, 1,1,1,0,1,0,1,0,1,0],
-        [1,1,1,0,1,0,1,0,1,0, 0,0,0,0,1,0,1,0,1,0],
-        [0,0,1,0,1,0,0,0,0,0, 1,1,1,0,0,0,0,1,1,1]]
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,0,0,0],
+        [0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,1,0,1,0],
+        [1,1,1,0,1,0,1,0,1,0,0,0,0,0,1,0,1,0,1,0],
+        [0,0,1,1,1,0,1,0,1,0,0,0,1,1,1,0,1,0,1,0],
+        [0,0,0,0,1,0,1,0,1,0,1,1,1,0,1,0,1,0,1,0],
+        [0,0,1,0,1,0,0,0,1,0,0,1,1,0,1,0,0,0,1,0],
+        [0,0,1,0,1,1,1,1,1,0,0,1,0,0,1,1,1,1,1,0],
+        [0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+        [0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,0,0,0],
+        [0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,1,0,1,0],
+        [0,0,1,1,1,0,1,0,1,0,0,0,1,1,1,0,1,0,1,0],
+        [0,0,0,0,1,0,1,0,1,0,1,1,1,0,1,0,1,0,1,0],
+        [1,1,1,0,1,0,1,0,1,0,0,0,0,0,1,0,1,0,1,0],
+        [0,0,1,0,1,0,0,0,0,0,1,1,1,0,0,0,0,1,1,1]]
 
 
     code = rrt(start_pos, goal_pos, map_size, step_size, search_radius, goal_radius, occupancy_grid)
     # code.sample_point()
     path = None
+
+    if not code.is_valid_node(code.start_node):
+        print("start node itself is invalid bro")
+        return
+
+    if not code.is_valid_node(code.goal_node):
+        print('r u dumb, give me a goal thats not obstacle!')
+        return
+        
+    
     code.develop_tree()
     max_iterations = 100000
     print("iterating now")
