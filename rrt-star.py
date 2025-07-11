@@ -2,6 +2,7 @@ import math
 import random
 import time
 
+
 class node:
     def __init__(self, position):
         self.x = position[0]
@@ -66,10 +67,30 @@ class rrt():
         for node in self.node_tree:
             dx, dy = self.distance(node, new_node)
             dist = math.sqrt(dx**2 + dy**2)
-            if dist <= self.search_radius:
+            if dist <= self.step_size:
                 nearby_nodes.append(node)
         return nearby_nodes
 
+    def rewire_tree(self, new_node):
+    
+        nearby_nodes = self.find_neighbour_in_search_radius(new_node)
+
+        for n in nearby_nodes:
+            if not self.is_valid_node(n):  # <- Prevent rewiring to a bad node
+                continue
+
+            cost = new_node.cost + np.linalg.norm([n.x - new_node.x, n.y - new_node.y])
+
+            if self.debug:
+                time.sleep(1)
+                print(f"checking if ({n.x},{n.y}) collison free with ({new_node.x},{new_node.y})")
+
+            if cost < n.cost and self.check_if_collision_free(new_node, n) == True:
+                dx, dy = self.distance(new_node, n)
+                dist = math.sqrt(dx**2 + dy**2)
+                if dist <= self.step_size:  
+                    n.parent = new_node
+                    n.cost = cost
 
     def brancher(self, from_node, to_node):
         if self.debug:
@@ -89,6 +110,7 @@ class rrt():
 
         new_node = node((new_x, new_y))
         # now the parent is decided based on cost and step size
+        #modularise this and put it outside brancher
         nearby_nodes = self.find_neighbour_in_search_radius(new_node)
         min_cost = from_node.cost + self.step_size
         best_parent = from_node
@@ -194,15 +216,9 @@ class rrt():
             if node.x == n.x and node.y == n.y:
                 return False
         
-        return True
-
-
-    def rewire_tree(self):
-        '''
-        write code here to rewire the nodes
-        '''
+        return True        
+        
             
-
     def develop_tree(self):
         
         if self.debug:
@@ -220,8 +236,8 @@ class rrt():
 
             if no_collision_path == True and is_valid_node == True and check_if_node_exists == True:
                 self.node_tree.append(new_node)
+                self.rewire_tree(new_node)
 
-            
             else:
                 pass
 
