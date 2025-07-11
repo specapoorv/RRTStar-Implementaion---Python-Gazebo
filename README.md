@@ -1,1 +1,2 @@
-in rrt-star please add the rewire function
+in rrt-star please code the rewire function and add that in develop_tree too
+right now its only checking nearby nodes and choosing the best parent in them but not rewirng the tree
